@@ -1,0 +1,22 @@
+{
+  "name": "movie-db",
+  "version": "1.0.0",
+  "description": "codi movie database",
+  "main": "index.js",
+  "scripts": {
+    "test": "IDK"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Codi-T03/Movie-DB.git"
+  },
+  "keywords": [
+    "IDK"
+  ],
+  "author": "Tareq El-Ali",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Codi-T03/Movie-DB/issues"
+  },
+  "homepage": "https://github.com/Codi-T03/Movie-DB#readme"
+}
