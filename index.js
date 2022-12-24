@@ -33,8 +33,7 @@ app.get("/:par1?/:par2?/:par3?/:par4?", (req, res) => {
   } else if (par1 == "search") {
     if (req.query.s == "" || req.query.s == undefined) {
       let search = { status: 500, message: `You have to provide a search` };
-      res.send(search);
-      res.status(500).send();
+      res.status(500).send(search);
     } else {
       let search = { status: 200, message: `OK`, data: req.query.s };
       res.send(search);
@@ -42,13 +41,39 @@ app.get("/:par1?/:par2?/:par3?/:par4?", (req, res) => {
   } else if (par1 == "movies") {
     switch (par2) {
       case "create":
-        res.send("create");
+        var theTitle = req.query.title;
+        var year = req.query.year;
+        var yearDig = year.toString().length;
+        if (theTitle == "" || year == "" || yearDig != 4 || isNaN(year)) {
+          res
+            .status(403)
+            .send(
+              "you cannot create a movie without providing a title and a year"
+            );
+        } else {
+          var movie;
+          if (
+            req.query.rating == "" ||
+            typeof req.query.rating === "undefined" || req.query.rating >10
+          ) {
+            movie = { title: req.query.title, year: req.query.year, rating: 4 };
+          } else {
+            movie = {
+              title: req.query.title,
+              year: req.query.year,
+              rating: req.query.rating,
+            };
+          }
+        }
+        movies.push(movie);
+        res.status(200).send(movies);
+
         break;
       case "read":
         if (par3 === undefined) {
           res.send({ status: 200, data: movies });
         } else {
-          if ((par3.split("-")[0] == "by")) {
+          if (par3.split("-")[0] == "by") {
             let sortby = par3.split("-")[1];
             var sortedMovies;
             if (sortby == "year") {
@@ -72,8 +97,7 @@ app.get("/:par1?/:par2?/:par3?/:par4?", (req, res) => {
               sortedMovies = movies.sort((a, b) => {
                 return a.rating - b.rating;
               });
-            res.send({ status: 200, data: sortedMovies });
-
+              res.send({ status: 200, data: sortedMovies });
             }
           } else if (par3 == "ID") {
             if (par4 == undefined) {
@@ -85,13 +109,13 @@ app.get("/:par1?/:par2?/:par3?/:par4?", (req, res) => {
                     error: true,
                     message: `${par4} is not a number`,
                   })
-                :par4>0&&par4<movies.length?
-                 res.send({ status: 200, data: movies[par4 - 1] }):
-                 res.send({
+                : par4 > 0 && par4 < movies.length
+                ? res.send({ status: 200, data: movies[par4 - 1] })
+                : res.send({
                     status: 404,
                     error: true,
                     message: `the movie ${par4} does not exist`,
-                  })
+                  });
             }
           }
         }
