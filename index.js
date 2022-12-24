@@ -7,10 +7,11 @@ const movies = [
   { title: "Brazil", year: 1985, rating: 8 },
   { title: "الإرهاب والكباب‎", year: 1992, rating: 6.2 },
 ];
-app.get("/:par1?/:par2?", (req, res) => {
+
+app.get("/:par1?/:par2?/:par3?", (req, res) => {
   let par1 = req.params.par1;
   let par2 = req.params.par2;
-
+  let par3 = req.params.par3;
   if (par1 == undefined) {
     res.send("ok");
   } else if (par1 == "test") {
@@ -38,15 +39,50 @@ app.get("/:par1?/:par2?", (req, res) => {
       res.send(search);
     }
   } else if (par1 == "movies") {
-    par2 == "create"
-      ? res.send("create")
-      : par2 == "read"
-      ? res.send({status:200,data:movies})
-      : par2 == "update"
-      ? res.send("update")
-      : par2 == "delete"
-      ? res.send("delete")
-      : res.send("choose a directory");
+    switch (par2) {
+      case "create":
+        res.send("create");
+        break;
+      case "read":
+        if (par3 === undefined) {
+          res.send({ status: 200, data: movies });
+        } else {
+          let sortby = par3.split("-")[1];
+          var sortedMovies
+          if (sortby == "year") {
+            sortedMovies = movies.sort((a, b) => {
+              return a.year - b.year;
+            });
+          } else if (sortby == "title") {
+            sortedMovies = movies.sort((a, b) => {
+                let fa = a.title.toLowerCase(),
+                    fb = b.title.toLowerCase();
+            
+                if (fa < fb) {
+                    return -1;
+                }
+                if (fa > fb) {
+                    return 1;
+                }
+                return 0;
+            });
+          } else if(sortby=='rating'){
+            sortedMovies = movies.sort((a, b) => {
+                return a.rating - b.rating;
+              });
+          }
+          res.send({status:200,data:sortedMovies})
+        }
+        break;
+      case "update":
+        res.send("update");
+        break;
+      case "delete":
+        res.send("delete");
+        break;
+      default:
+        res.send("choose a directory");
+    }
   } else {
     res.send(`${par1} is not a directory`);
   }
