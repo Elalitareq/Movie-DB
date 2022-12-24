@@ -38,7 +38,7 @@ app.get("/search", (req, res) => {
     res.send(search);
   }
 });
-app.get("/movies/create", (req, res) => {
+app.post("/movies/create", (req, res) => {
     var theTitle = req.query.title;
     var year = req.query.year;
     if (
@@ -57,19 +57,19 @@ app.get("/movies/create", (req, res) => {
         typeof req.query.rating === "undefined" ||
         req.query.rating > 10
       ) {
-        movie = { title: req.query.title, year: req.query.year, rating: 4 };
+        movie = { title: req.query.title, year: parseInt(req.query.year), rating: 4 };
       } else {
         movie = {
           title: req.query.title,
           year: req.query.year,
-          rating: req.query.rating,
+          rating: parseFloat(req.query.rating),
         };
       }
     }
     movies.push(movie);
     res.status(200).send(movies);
   });
-app.get("/movies/delete/:par3",(req,res)=>{
+app.delete("/movies/delete/:par3",(req,res)=>{
     let par3=req.params.par3
     if (
         par3 === undefined ||
@@ -144,7 +144,7 @@ app.get("/movies/read/:par3/:par4", (req, res) => {
     }
   }
 });
-app.get("/movies/update/:par3", (req, res) => {
+app.put("/movies/update/:par3", (req, res) => {
   let par3 = req.params.par3;
   if (par3 == NaN || par3 > movies.length || par3 < 1) {
     res
@@ -158,11 +158,11 @@ app.get("/movies/update/:par3", (req, res) => {
       theTitle !== undefined ? theTitle : movies[par3 - 1].title;
     movies[par3 - 1].year =
       year !== undefined && year.toString().length == 4 && year !== NaN
-        ? year
+        ? parseInt(year)
         : movies[par3 - 1].year;
     movies[par3 - 1].rating =
       rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
-        ? rating
+        ? parseFload(rating)
         : movies[par3 - 1].rating;
     res.send(movies[par3 - 1]);
   }
