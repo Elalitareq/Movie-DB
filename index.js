@@ -8,10 +8,11 @@ const movies = [
   { title: "الإرهاب والكباب‎", year: 1992, rating: 6.2 },
 ];
 
-app.get("/:par1?/:par2?/:par3?", (req, res) => {
+app.get("/:par1?/:par2?/:par3?/:par4?", (req, res) => {
   let par1 = req.params.par1;
   let par2 = req.params.par2;
   let par3 = req.params.par3;
+  let par4 = req.params.par4;
   if (par1 == undefined) {
     res.send("ok");
   } else if (par1 == "test") {
@@ -47,31 +48,52 @@ app.get("/:par1?/:par2?/:par3?", (req, res) => {
         if (par3 === undefined) {
           res.send({ status: 200, data: movies });
         } else {
-          let sortby = par3.split("-")[1];
-          var sortedMovies
-          if (sortby == "year") {
-            sortedMovies = movies.sort((a, b) => {
-              return a.year - b.year;
-            });
-          } else if (sortby == "title") {
-            sortedMovies = movies.sort((a, b) => {
+          if ((par3.split("-")[0] == "by")) {
+            let sortby = par3.split("-")[1];
+            var sortedMovies;
+            if (sortby == "year") {
+              sortedMovies = movies.sort((a, b) => {
+                return a.year - b.year;
+              });
+            } else if (sortby == "title") {
+              sortedMovies = movies.sort((a, b) => {
                 let fa = a.title.toLowerCase(),
-                    fb = b.title.toLowerCase();
-            
+                  fb = b.title.toLowerCase();
+
                 if (fa < fb) {
-                    return -1;
+                  return -1;
                 }
                 if (fa > fb) {
-                    return 1;
+                  return 1;
                 }
                 return 0;
-            });
-          } else if(sortby=='rating'){
-            sortedMovies = movies.sort((a, b) => {
+              });
+            } else if (sortby == "rating") {
+              sortedMovies = movies.sort((a, b) => {
                 return a.rating - b.rating;
               });
+            res.send({ status: 200, data: sortedMovies });
+
+            }
+          } else if (par3 == "ID") {
+            if (par4 == undefined) {
+              res.send("please specify an ID");
+            } else {
+              !parseInt(par4)
+                ? res.status(404).send({
+                    status: 404,
+                    error: true,
+                    message: `${par4} is not a number`,
+                  })
+                :par4>0&&par4<movies.length?
+                 res.send({ status: 200, data: movies[par4 - 1] }):
+                 res.send({
+                    status: 404,
+                    error: true,
+                    message: `the movie ${par4} does not exist`,
+                  })
+            }
           }
-          res.send({status:200,data:sortedMovies})
         }
         break;
       case "update":
