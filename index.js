@@ -2,9 +2,6 @@ const express = require("express");
 const app = express();
 const router = require('./movies')
 const port = 9797;
-const mongoose = require("mongoose");
-const user='user'
-const password='mogopass'
 
 
 app.get("/", (req, res) => {
