@@ -2,6 +2,10 @@ const express = require("express");
 const app = express();
 const router = require('./movies')
 const port = 9797;
+const mongoose = require("mongoose");
+const user='user'
+const password='mogopass'
+
 
 app.get("/", (req, res) => {
   res.send("ok");
@@ -36,6 +40,7 @@ app.get("/search", (req, res) => {
 });
 app.use('/movies',router)
 app.use('/movie/:par3?/:par4',router)
+
 app.listen(port, () => {
   console.log(`listening at http://localhost:${port}`);
 });

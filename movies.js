@@ -1,4 +1,23 @@
 const express = require('express')
+const mongoose = require("mongoose");
+const user='user'
+const password='mogopass'
+
+const url=`mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`
+var movieSchema = mongoose.Schema({
+  title: {
+      type: String
+  },
+  year: {
+      type: Number
+  },
+  rating:{
+      type: Number,
+      default:4
+  }
+});
+var movieList = mongoose.model('movies', movieSchema);
+
 const router = express.Router()
 const movies = [
     { title: "Jaws", year: 1975, rating: 8 },
@@ -10,6 +29,13 @@ router.use((req, res, next) => {
     console.log('Time: ', Date.now())
     next()
   })
+  try{
+    mongoose.connect(url,{useNewUrlParser: true, useUnifiedTopology: true}, async()=>{
+        console.log("Connected to MongoDB ");
+    })
+  } catch(error){
+    console.log(error.message);
+  }
 router.get("/:par3?/:par4?", (req, res) => {
     let par3 = req.params.par3;
     let par4 = req.params.par4;
@@ -63,7 +89,7 @@ router.get("/:par3?/:par4?", (req, res) => {
       }
     }
   });
-  router.post("/", (req, res) => {
+  router.post("/", async (req, res) => {
     var theTitle = req.query.title;
     var year = req.query.year;
     if (
@@ -77,18 +103,18 @@ router.get("/:par3?/:par4?", (req, res) => {
         .send("you cannot create a movie without providing a title and a year");
     } else {
       var movie;
-      if(req.query.yea>10||req.query.yea<0||req.query.yea==undefined||isNaN(req.query.yea)){
+      if(req.query.rating>10||req.query.rating<0||req.query.rating==undefined||isNaN(req.query.rating)){
           rating=4
       }else {
           rating=parseFloat(req.query.rating)
       }
-      movie = {
+      movie =new movieList({
         title: req.query.title,
         year: parseInt(req.query.year),
-        rating: rating,
-      };
-      movies.push(movie);
-      res.status(200).send(movies);
+        rating: parseFloat(rating),
+      });
+      const addedMovies=await movie.save()
+      res.send({status:200,message:{addedMovies}})
     }
   });
   router.delete("/:par3?", (req, res) => {

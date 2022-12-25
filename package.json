@@ -22,6 +22,7 @@
   "homepage": "https://github.com/Codi-T03/Movie-DB#readme",
   "dependencies": {
     "express": "^4.18.2",
+    "mongoose": "^6.8.1",
     "nodemon": "^2.0.20"
   }
 }
