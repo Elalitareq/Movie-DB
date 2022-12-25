@@ -39,58 +39,50 @@ app.get("/search", (req, res) => {
   }
 });
 app.post("/movies/create", (req, res) => {
-    var theTitle = req.query.title;
-    var year = req.query.year;
-    if (
-      theTitle == "" ||
-      year == "" ||
-      year.toString().length !== 4 ||
-      isNaN(year)
-    ) {
-      res
-        .status(403)
-        .send("you cannot create a movie without providing a title and a year");
-    } else {
-      var movie;
-      if (
-        req.query.rating == "" ||
-        typeof req.query.rating === "undefined" ||
-        req.query.rating > 10
-      ) {
-        movie = { title: req.query.title, year: parseInt(req.query.year), rating: 4 };
-      } else {
-        movie = {
-          title: req.query.title,
-          year: req.query.year,
-          rating: parseFloat(req.query.rating),
-        };
-      }
+  var theTitle = req.query.title;
+  var year = req.query.year;
+  if (
+    theTitle == "" ||
+    year == "" ||
+    year.toString().length !== 4 ||
+    isNaN(year)
+  ) {
+    res
+      .status(403)
+      .send("you cannot create a movie without providing a title and a year");
+  } else {
+    var movie;
+    if(req.query.yea>10||req.query.yea<0||req.query.yea==undefined||isNaN(req.query.yea)){
+        rating=4
+    }else {
+        rating=parseFloat(req.query.rating)
     }
+    movie = {
+      title: req.query.title,
+      year: parseInt(req.query.year),
+      rating: rating,
+    };
     movies.push(movie);
     res.status(200).send(movies);
-  });
-app.delete("/movies/delete/:par3",(req,res)=>{
-    let par3=req.params.par3
-    if (
-        par3 === undefined ||
-        par3 == "" ||
-        par3 > movies.length ||
-        par3 < 0
-      ) {
-        res.status(404).send({
-          status: 404,
-          error: true,
-          message: `the movie ${par3} does not exist`,
-        });
-      } else {
-        movies.splice(par3 - 1, 1);
-        res.send({
-          status: 200,
-          message: `deleted movie with ID=${par3}`,
-          data: movies,
-        });
-      }
-})
+  }
+});
+app.delete("/movies/delete/:par3", (req, res) => {
+  let par3 = req.params.par3;
+  if (par3 === undefined || par3 == "" || par3 > movies.length || par3 < 0) {
+    res.status(404).send({
+      status: 404,
+      error: true,
+      message: `the movie ${par3} does not exist`,
+    });
+  } else {
+    movies.splice(par3 - 1, 1);
+    res.send({
+      status: 200,
+      message: `deleted movie with ID=${par3}`,
+      data: movies,
+    });
+  }
+});
 app.get("/movies/read/:par3/:par4", (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
