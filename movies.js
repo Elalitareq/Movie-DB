@@ -2,25 +2,28 @@ const express = require("express");
 const mongoose = require("mongoose");
 const user = "user";
 const password = "mogopass";
-
 const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
 const autoIncrement = require("mongoose-ai");
+mongoose.set("strictQuery", false);
 var connection = mongoose.createConnection(url);
 autoIncrement.initialize(connection);
-var movieSchema = mongoose.Schema({
-  title: {
-    type: String,
+var movieSchema = mongoose.Schema(
+  {
+    title: {
+      type: String,
+    },
+    year: {
+      type: Number,
+    },
+    rating: {
+      type: Number,
+      default: 4,
+    },
   },
-  year: {
-    type: Number,
-  },
-  rating: {
-    type: Number,
-    default: 4,
-  },
-},{
-    versionKey: false
-});
+  {
+    versionKey: false,
+  }
+);
 movieSchema.plugin(autoIncrement.plugin, "movies");
 var movieList = mongoose.model("movies", movieSchema);
 const addedMovies = [];
@@ -50,13 +53,13 @@ router.get("/:par3?/:par4?", async (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
   if (par3 === undefined || par3 === "") {
-    const moviesFromDB = await movieList.find({})
+    const moviesFromDB = await movieList.find({});
 
-        try {
-          res.send(moviesFromDB);
-        } catch (error) {
-          res.status(500).send(error);
-        }
+    try {
+      res.send(moviesFromDB);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   } else {
     if (par3.split("-")[0] == "by") {
       let sortby = par3.split("-")[1];
@@ -86,10 +89,10 @@ router.get("/:par3?/:par4?", async (req, res) => {
         }
       }
     } else if (par3 == "ID") {
-      if (par4 == undefined||isNaN(par4)) {
+      if (par4 == undefined || isNaN(par4)) {
         res.send("please specify an ID number");
       } else {
-        const moviesFromDB = await movieList.find({_id:req.params.par4})
+        const moviesFromDB = await movieList.find({ _id: req.params.par4 });
 
         try {
           res.send(moviesFromDB);
@@ -152,27 +155,41 @@ router.delete("/:par3?", (req, res) => {
   }
 });
 
-router.put("/:par3?", (req, res) => {
+router.put("/:par3?", async (req, res) => {
   let par3 = req.params.par3;
-  if (par3 == NaN || par3 > movies.length || par3 < 1) {
-    res
-      .status(404)
-      .send({ status: 404, error: true, message: `no movie with ID=${par3}` });
+  if (isNaN(par3)) {
+    res.status(404).send({
+      status: 404,
+      error: true,
+      message: `please select an ID number`,
+    });
   } else {
     var theTitle = req.query.title;
     var year = req.query.year;
     var rating = req.query.rating;
-    movies[par3 - 1].title =
-      theTitle !== undefined ? theTitle : movies[par3 - 1].title;
-    movies[par3 - 1].year =
-      year !== undefined && year.toString().length == 4 && year !== NaN
-        ? parseInt(year)
-        : movies[par3 - 1].year;
-    movies[par3 - 1].rating =
-      rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
-        ? parseFload(rating)
-        : movies[par3 - 1].rating;
-    res.send(movies[par3 - 1]);
-  }
+    const filter = { _id: par3 };
+
+    var update = {};
+
+    theTitle !== undefined ? (update.title = theTitle) : update;
+    console.log(year);
+    year !== undefined && year.toString().length == 4&&!isNaN(year)
+      ? (update.year = parseInt(year))
+      : update;
+
+    rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
+      ? (update.rating = parseFloat(rating))
+      : update;
+    try{movieList.find({_id:par3})
+    try{await movieList.countDocuments(filter); // 0
+
+    let movie = await movieList.findOneAndUpdate(filter, update, {
+      new: true,
+      upsert: true, // Make this update into an upsert
+    });
+    res.send({status:200 ,data:movie});}catch(err){
+      res.status(500).send(err)
+    }
+  }catch(err){console.log(err)}}
 });
 module.exports = router;
