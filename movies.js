@@ -137,22 +137,21 @@ router.post("/", async (req, res) => {
     res.send({ status: 200, message: { addedMovies } });
   }
 });
-router.delete("/:par3?", (req, res) => {
+router.delete("/:par3?", async(req, res) => {
   let par3 = req.params.par3;
-  if (par3 === undefined || par3 == "" || par3 > movies.length || par3 < 0) {
+  if (par3 === undefined || par3 == "" || par3 < 0) {
     res.status(404).send({
       status: 404,
       error: true,
       message: `the movie ${par3} does not exist`,
     });
-  } else {
-    movies.splice(par3 - 1, 1);
-    res.send({
-      status: 200,
-      message: `deleted movie with ID=${par3}`,
-      data: movies,
-    });
+  } else {try{
+    movieList.deleteOne({ _id: par3 }).then(()=>{
+      console.log("Data deleted");})
+    res.send({status:200,message:`movie with id:${par3} deleted`})
+  }catch(err){res.status(404).send(err)}
   }
+  
 });
 
 router.put("/:par3?", async (req, res) => {
@@ -172,7 +171,6 @@ router.put("/:par3?", async (req, res) => {
     var update = {};
 
     theTitle !== undefined ? (update.title = theTitle) : update;
-    console.log(year);
     year !== undefined && year.toString().length == 4&&!isNaN(year)
       ? (update.year = parseInt(year))
       : update;
@@ -180,7 +178,6 @@ router.put("/:par3?", async (req, res) => {
     rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
       ? (update.rating = parseFloat(rating))
       : update;
-    try{movieList.find({_id:par3})
     try{await movieList.countDocuments(filter); // 0
 
     let movie = await movieList.findOneAndUpdate(filter, update, {
@@ -190,6 +187,7 @@ router.put("/:par3?", async (req, res) => {
     res.send({status:200 ,data:movie});}catch(err){
       res.status(500).send(err)
     }
-  }catch(err){console.log(err)}}
+  
+}
 });
 module.exports = router;

@@ -36,7 +36,7 @@ app.get("/search", (req, res) => {
   }
 });
 app.use('/movies',router)
-app.use('/movie/:par3?/:par4',router)
+app.use('/movies/:par3?/:par4',router)
 
 app.listen(port, () => {
   console.log(`listening at http://localhost:${port}`);
