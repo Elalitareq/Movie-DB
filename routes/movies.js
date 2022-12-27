@@ -1,11 +1,20 @@
 const express = require("express");
 var movieList = require("../models/movieList.js");
-const auth = require("./../middleware/auth")
+const auth = require("./../middleware/auth");
 const movieRouter = express.Router();
 movieRouter.use((_req, _res, next) => {
   console.log("Using movieRoute");
   next();
 });
+async function sortMovies(sortBy) {
+  let movies;
+  try {
+    movies = await movieList.find({}).sort({ [sortBy]: 1 });
+  } catch (error) {
+    throw new Error(error.message);
+  }
+  return movies;
+}
 movieRouter.get("/:par3?/:par4?", async (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
@@ -20,46 +29,19 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
     }
   } else if (par3.split("-")[0] == "by") {
     let sortby = par3.split("-")[1];
-    if (sortby == "year") {
-      try {
-        const byYear = await movieList.find({}).sort({ year: 1 });
-        res.send({
-          status: 200,
-          message: "Movies sorted by year",
-          data: byYear,
-        });
-      } catch (error) {
-        res
-          .status(500)
-          .send({ status: 500, error: true, message: error.message });
-      }
-    } else if (sortby == "title") {
-      try {
-        const byTitle = await movieList.find({}).sort({ title: 1 });
-        res.send({
-          status: 200,
-          message: "Movies sorted by title",
-          data: byTitle,
-        });
-      } catch (error) {
-        res
-          .status(500)
-          .send({ status: 500, error: true, message: error.message });
-      }
-    } else if (sortby == "rating") {
-      try {
-        const byRating = await movieList.find({}).sort({ rating: 1 });
-        res.send({
-          status: 200,
-          message: "Movies sorted by rating",
-          data: byRating,
-        });
-      } catch (error) {
-        res
-          .status(500)
-          .send({ status: 500, error: true, message: error.message });
-      }
+    let movies;
+    try {
+      movies = await sortMovies(sortby);
+    } catch (error) {
+      res
+        .status(500)
+        .send({ status: 500, error: true, message: error.message });
     }
+    res.send({
+      status: 200,
+      message: `Movies sorted by ${sortby}`,
+      data: movies,
+    });
   } else if (par3 == "ID") {
     try {
       movieList.countDocuments({ _id: par4 }, async (err, count) => {
@@ -83,23 +65,25 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
     });
   }
 });
+
 movieRouter.post("/", async (req, res) => {
   try {
-  const { title, year, rating } = req.query;
-  const newMovie = { title, year, rating };
-  const movie = new movieList(newMovie);
-  const addedMovie = await movie.save();
-  res.send({ status: 200, message: "movie added", data: { addedMovie } });
+    const { title, year, rating } = req.query;
+    const newMovie = { title, year, rating };
+    const movie = new movieList(newMovie);
+    const addedMovie = await movie.save();
+    res.send({ status: 200, message: "movie added", data: { addedMovie } });
   } catch (error) {
-  res.status(403).send({ status: 403, error: true, message: error.message });
+    res.status(403).send({ status: 403, error: true, message: error.message });
   }
-  });
+});
+
 movieRouter.delete("/:id", async (req, res) => {
-  let id = req.params.id;
-  movieList.findByIdAndDelete(id, (error, data) => {
-    if (data !== null) {
-      if (error) res.send({status:500,error:true,message:error.message});
-      else res.send({ status: 200,message:`movie with ID:${id} deleted `, data: data });
+  try {
+    let id = req.params.id;
+    const data = await movieList.findByIdAndDelete(id);
+    if (data) {
+      res.send({ status: 200, message: `movie with ID:${id} deleted, data ` });
     } else {
       res.status(404).send({
         status: 404,
@@ -107,7 +91,9 @@ movieRouter.delete("/:id", async (req, res) => {
         message: `the movie ${id} does not exist`,
       });
     }
-  });
+  } catch (error) {
+    res.send({ status: 500, error: true, message: error.message });
+  }
 });
 movieRouter.put("/:par3?", async (req, res) => {
   let par3 = req.params.par3;
