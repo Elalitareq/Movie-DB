@@ -1,7 +1,9 @@
+require("dotenv").config();
+
 const mongoose = require("mongoose");
-const user = "user";
-const password = "mogopass";
-const db="movies_db"
+const user = process.env.user;
+const password = process.env.password;
+const db=process.env.db
 const URI = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/${db}?retryWrites=true&w=majority`;
 
 exports.connect = () => {

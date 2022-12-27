@@ -23,32 +23,32 @@ userRouter.post("/create", async (req, res) => {
       res.status(400).send("All input is required");
     } else if (oldUser) {
       return res.status(409).send("User Already Exist. Please Login");
-    } else {
-      //Encrypt user password
-      encryptedPassword = await bcrypt.hash(password, 10);
+    }else{
 
-      // Create user in our database
-      const user = await User.create({
-        first_name,
-        last_name,
-        email: email.toLowerCase(), // sanitize: convert email to lowercase
-        password: encryptedPassword,
-      });
+    //Encrypt user password
+    encryptedPassword = await bcrypt.hash(password, 10);
 
-      // Create token
-      const token = jwt.sign(
-        { user_id: user._id, email },
-        process.env.TOKEN_KEY,
-        {
-          expiresIn: "2h",
-        }
-      );
-      // save user token
-      user.token = token;
+    // Create user in our database
+    const user = await User.create({
+      first_name,
+      last_name,
+      email: email.toLowerCase(), // sanitize: convert email to lowercase
+      password: encryptedPassword,
+    });
 
-      // return new user
-      res.status(201).json(user);
-    }
+    // Create token
+    const token = jwt.sign(
+      { user_id: user._id, email },
+      process.env.TOKEN_KEY,
+      {
+        expiresIn: "2h",
+      }
+    );
+    // save user token
+    user.token = token;
+
+    // return new user
+    res.status(201).json(user);}
   } catch (err) {
     console.log(err);
   }
@@ -57,12 +57,17 @@ userRouter.post("/create", async (req, res) => {
 // Login
 userRouter.post("/login", async (req, res) => {
   try {
+    // Get user input
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
+    // Validate user input
     if (!(email && password)) {
       res.status(400).send("All input is required");
-    } else if (user && (await bcrypt.compare(password, user.password))) {
+    }
+    // Validate if user exist in our database
+
+    else if (user && (await bcrypt.compare(password, user.password))) {
       // Create token
       const token = jwt.sign(
         { user_id: user._id, email },
