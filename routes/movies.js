@@ -4,7 +4,6 @@ const user = "user";
 const password = "mogopass";
 const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
 var movieList = require("./../models/movieList");
-const addedMovies = [];
 const movieRouter = express.Router();
 movieRouter.use((_req, _res, next) => {
   console.log("Using Route");
@@ -81,8 +80,8 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
         if (count > 0) {
           const movieFromDB = await movieList.find({ _id: req.params.par4 });
           res.send({ statys: 200, message: `ID:${par4}`, data: movieFromDB });
-        }else{
-          res.send({ statys: 200, message: `ID:${par4} does not exist` })
+        } else {
+          res.send({ statys: 200, message: `ID:${par4} does not exist` });
         }
       });
     } catch (error) {
@@ -90,8 +89,12 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
         .status(500)
         .send({ status: 500, error: true, message: error.message });
     }
-  } else{
-    res.status(404).send({status:404,error:true,message:`${par3} directory not found`})
+  } else {
+    res.status(404).send({
+      status: 404,
+      error: true,
+      message: `${par3} directory not found`,
+    });
   }
 });
 movieRouter.post("/", async (req, res) => {
@@ -121,12 +124,24 @@ movieRouter.delete("/:par3?", async (req, res) => {
     });
   } else {
     try {
-      movieList.deleteOne({ _id: par3 }).then(() => {
-        console.log("Data deleted");
+      movieList.countDocuments({ _id: par3 }, async (err, count) => {
+        if (count > 0) {
+          movieList.deleteOne({ _id: par3 }).then(() => {
+            console.log("Data deleted");
+          });
+          res.send({ status: 200, message: `movie with ID:${par3} deleted` });
+        } else {
+          res.status(404).send({
+            statys: 404,
+            error: true,
+            message: `ID:${par3} not found`,
+          });
+        }
       });
-      res.send({ status: 200, message: `movie with id:${par3} deleted` });
-    } catch (err) {
-      res.status(404).send(err);
+    } catch (error) {
+      res
+        .status(500)
+        .send({ status: 500, error: true, message: error.message });
     }
   }
 });
@@ -164,7 +179,13 @@ movieRouter.put("/:par3?", async (req, res) => {
 
       movie !== null
         ? res.send({ status: 200, data: movie })
-        : res.send(`No movie with ID: ${par3} `);
+        : res
+            .status(404)
+            .send({
+              status: 404,
+              error: true,
+              message: `ID:${par3} not found `,
+            });
     } catch (err) {
       res.status(500).send(err);
     }
