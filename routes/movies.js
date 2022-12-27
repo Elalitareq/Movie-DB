@@ -25,73 +25,88 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
   if (par3 === undefined || par3 === "") {
-    const moviesFromDB = await movieList.find({});
-
     try {
-      res.send(moviesFromDB);
+      const moviesFromDB = await movieList.find({});
+      res.send({ status: 200, message: "Movies", data: moviesFromDB });
     } catch (error) {
-      res.status(500).send(error);
-    }
-  } else {
-    if (par3.split("-")[0] == "by") {
-      let sortby = par3.split("-")[1];
-      if (sortby == "year") {
-        const byYear = await movieList.find({}).sort({ year: 1 });
-
-        try {
-          res.send(byYear);
-        } catch (error) {
-          res.status(500).send(error);
-        }
-      } else if (sortby == "title") {
-        const byTitle = await movieList.find({}).sort({ title: 1 });
-
-        try {
-          res.send(byTitle);
-        } catch (error) {
-          res.status(500).send(error);
-        }
-      } else if (sortby == "rating") {
-        const byRating = await movieList.find({}).sort({ rating: 1 });
-
-        try {
-          res.send(byRating);
-        } catch (error) {
-          res.status(500).send(error);
-        }
-      }
-    } else if (par3 == "ID") {
-      if (par4 == undefined || isNaN(par4)) {
-        res.send("please specify an ID number");
-      } else {
-        const moviesFromDB = await movieList.find({ _id: req.params.par4 });
-
-        try {
-          res.send({ statys: 200, data: moviesFromDB });
-        } catch (error) {
-          res.status(500).send({ status: 500, message: error });
-        }
-      }
-    } else {
       res
-        .status(404)
-        .send({ status: 404, message: `${par3}is not a directory` });
+        .status(500)
+        .send({ status: 500, error: true, message: error.message });
     }
+  } else if (par3.split("-")[0] == "by") {
+    let sortby = par3.split("-")[1];
+    if (sortby == "year") {
+      try {
+        const byYear = await movieList.find({}).sort({ year: 1 });
+        res.send({
+          status: 200,
+          message: "Movies sorted by year",
+          data: byYear,
+        });
+      } catch (error) {
+        res
+          .status(500)
+          .send({ status: 500, error: true, message: error.message });
+      }
+    } else if (sortby == "title") {
+      try {
+        const byTitle = await movieList.find({}).sort({ title: 1 });
+        res.send({
+          status: 200,
+          message: "Movies sorted by title",
+          data: byTitle,
+        });
+      } catch (error) {
+        res
+          .status(500)
+          .send({ status: 500, error: true, message: error.message });
+      }
+    } else if (sortby == "rating") {
+      try {
+        const byRating = await movieList.find({}).sort({ rating: 1 });
+        res.send({
+          status: 200,
+          message: "Movies sorted by rating",
+          data: byRating,
+        });
+      } catch (error) {
+        res
+          .status(500)
+          .send({ status: 500, error: true, message: error.message });
+      }
+    }
+  } else if (par3 == "ID") {
+    try {
+      movieList.countDocuments({ _id: par4 }, async (err, count) => {
+        if (count > 0) {
+          const movieFromDB = await movieList.find({ _id: req.params.par4 });
+          res.send({ statys: 200, message: `ID:${par4}`, data: movieFromDB });
+        }else{
+          res.send({ statys: 200, message: `ID:${par4} does not exist` })
+        }
+      });
+    } catch (error) {
+      res
+        .status(500)
+        .send({ status: 500, error: true, message: error.message });
+    }
+  } else{
+    res.status(404).send({status:404,error:true,message:`${par3} directory not found`})
   }
 });
 movieRouter.post("/", async (req, res) => {
-  var theTitle = req.query.title;
+  var title = req.query.title;
   var year = req.query.year;
   var rating = req.query.rating;
   var movie;
   try {
-    newMovie = {};
-    newMovie.title = theTitle;
-    year!==undefined?newMovie.year = year:newMovie
+    let newMovie = {};
+    newMovie.title = title;
+    newMovie.year = year;
     rating !== undefined ? (newMovie.rating = rating) : newMovie;
     movie = new movieList(newMovie);
     const addedMovie = await movie.save();
-    res.send({ status: 200, message: { addedMovie } });
+    res.send({ status: 200, message: "movie added", data: { addedMovie } });
   } catch (error) {
     res.status(403).send({ status: 403, error: true, message: error.message });
   }
@@ -125,13 +140,13 @@ movieRouter.put("/:par3?", async (req, res) => {
       message: `please select an ID number`,
     });
   } else {
-    var theTitle = req.query.title;
+    var title = req.query.title;
     var year = req.query.year;
     var rating = req.query.rating;
     const filter = { _id: par3 };
     var update = {};
 
-    theTitle !== undefined ? (update.title = theTitle) : update;
+    title !== undefined ? (update.title = title) : update;
     year !== undefined && year.toString().length == 4 && !isNaN(year)
       ? (update.year = parseInt(year))
       : update;
