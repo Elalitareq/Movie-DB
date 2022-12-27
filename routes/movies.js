@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const user = "user";
 const password = "mogopass";
 const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
-var movieList = require('./../models/movieList')
+var movieList = require("./../models/movieList");
 const addedMovies = [];
-const router = express.Router();
-router.use((_req, _res, next) => {
+const movieRouter = express.Router();
+movieRouter.use((_req, _res, next) => {
   console.log("Using Route");
   next();
 });
@@ -21,7 +21,7 @@ try {
 } catch (error) {
   console.log(error.message);
 }
-router.get("/:par3?/:par4?", async (req, res) => {
+movieRouter.get("/:par3?/:par4?", async (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
   if (par3 === undefined || par3 === "") {
@@ -67,51 +67,36 @@ router.get("/:par3?/:par4?", async (req, res) => {
         const moviesFromDB = await movieList.find({ _id: req.params.par4 });
 
         try {
-          res.send({statys:200,data:moviesFromDB});
+          res.send({ statys: 200, data: moviesFromDB });
         } catch (error) {
-          res.status(500).send({status:500,message:error});
+          res.status(500).send({ status: 500, message: error });
         }
       }
-    } else{
-      res.status(404).send({status:404,message:`${par3}is not a directory`})
+    } else {
+      res
+        .status(404)
+        .send({ status: 404, message: `${par3}is not a directory` });
     }
   }
 });
-router.post("/", async (req, res) => {
+movieRouter.post("/", async (req, res) => {
   var theTitle = req.query.title;
   var year = req.query.year;
-  if (
-    theTitle == "" ||
-    year == "" ||
-    year.toString().length !== 4 ||
-    isNaN(year)
-  ) {
-    res
-      .status(403)
-      .send("you cannot create a movie without providing a title and a year");
-  } else {
-    var movie;
-    if (
-      req.query.rating > 10 ||
-      req.query.rating < 0 ||
-      req.query.rating == undefined ||
-      isNaN(req.query.rating)
-    ) {
-      rating = 4;
-    } else {
-      rating = parseFloat(req.query.rating);
-    }
-    movie = new movieList({
-      title: req.query.title,
-      year: parseInt(req.query.year),
-      rating: parseFloat(rating),
-    });
+  var rating = req.query.rating;
+  var movie;
+  try {
+    newMovie = {};
+    newMovie.title = theTitle;
+    year!==undefined?newMovie.year = year:newMovie
+    rating !== undefined ? (newMovie.rating = rating) : newMovie;
+    movie = new movieList(newMovie);
     const addedMovie = await movie.save();
-    addedMovies.push(addedMovie);
-    res.send({ status: 200, message: { addedMovies } });
+    res.send({ status: 200, message: { addedMovie } });
+  } catch (error) {
+    res.status(403).send({ status: 403, error: true, message: error.message });
   }
 });
-router.delete("/:par3?", async(req, res) => {
+movieRouter.delete("/:par3?", async (req, res) => {
   let par3 = req.params.par3;
   if (par3 === undefined || par3 == "" || par3 < 0) {
     res.status(404).send({
@@ -119,16 +104,19 @@ router.delete("/:par3?", async(req, res) => {
       error: true,
       message: `the movie ${par3} does not exist`,
     });
-  } else {try{
-    movieList.deleteOne({ _id: par3 }).then(()=>{
-      console.log("Data deleted");})
-    res.send({status:200,message:`movie with id:${par3} deleted`})
-  }catch(err){res.status(404).send(err)}
+  } else {
+    try {
+      movieList.deleteOne({ _id: par3 }).then(() => {
+        console.log("Data deleted");
+      });
+      res.send({ status: 200, message: `movie with id:${par3} deleted` });
+    } catch (err) {
+      res.status(404).send(err);
+    }
   }
-  
 });
 
-router.put("/:par3?", async (req, res) => {
+movieRouter.put("/:par3?", async (req, res) => {
   let par3 = req.params.par3;
   if (isNaN(par3)) {
     res.status(404).send({
@@ -144,25 +132,27 @@ router.put("/:par3?", async (req, res) => {
     var update = {};
 
     theTitle !== undefined ? (update.title = theTitle) : update;
-    year !== undefined && year.toString().length == 4&&!isNaN(year)
+    year !== undefined && year.toString().length == 4 && !isNaN(year)
       ? (update.year = parseInt(year))
       : update;
 
     rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
       ? (update.rating = parseFloat(rating))
       : update;
-    console.log(update)
-    try{await movieList.countDocuments(filter); // 0
+    console.log(update);
+    try {
+      await movieList.countDocuments(filter); // 0
 
-    let movie = await movieList.findOneAndUpdate(filter, update, {
-      new: true,
-    });
-    
-    movie!==null?res.send({status:200 ,data:movie}):res.send(`No movie with ID: ${par3} `);
-  }catch(err){
-      res.status(500).send(err)
+      let movie = await movieList.findOneAndUpdate(filter, update, {
+        new: true,
+      });
+
+      movie !== null
+        ? res.send({ status: 200, data: movie })
+        : res.send(`No movie with ID: ${par3} `);
+    } catch (err) {
+      res.status(500).send(err);
     }
-  
-}
+  }
 });
-module.exports = router;
+module.exports = movieRouter;

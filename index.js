@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const router = require('./routes/movies')
+const movieRouter = require('./routes/movies')
 const port = 9797;
 
 
@@ -35,7 +35,7 @@ app.get("/search", (req, res) => {
     res.send(search);
   }
 });
-app.use('/movies',router)
+app.use('/movies',movieRouter)
 
 app.listen(port, () => {
   console.log(`listening at http://localhost:${port}`);
