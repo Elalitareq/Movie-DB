@@ -3,37 +3,9 @@ const mongoose = require("mongoose");
 const user = "user";
 const password = "mogopass";
 const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
-const autoIncrement = require("mongoose-ai");
-mongoose.set("strictQuery", false);
-var connection = mongoose.createConnection(url);
-autoIncrement.initialize(connection);
-var movieSchema = mongoose.Schema(
-  {
-    title: {
-      type: String,
-    },
-    year: {
-      type: Number,
-    },
-    rating: {
-      type: Number,
-      default: 4,
-    },
-  },
-  {
-    versionKey: false,
-  }
-);
-movieSchema.plugin(autoIncrement.plugin, "movies");
-var movieList = mongoose.model("movies", movieSchema);
+var movieList = require('./../models/movieList')
 const addedMovies = [];
 const router = express.Router();
-const movies = [
-  { title: "Jaws", year: 1975, rating: 8 },
-  { title: "Avatar", year: 2009, rating: 7.8 },
-  { title: "Brazil", year: 1985, rating: 8 },
-  { title: "الإرهاب والكباب‎", year: 1992, rating: 6.2 },
-];
 router.use((_req, _res, next) => {
   console.log("Using Route");
   next();

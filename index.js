@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const router = require('./movies')
+const router = require('./routes/movies')
 const port = 9797;
 
 
