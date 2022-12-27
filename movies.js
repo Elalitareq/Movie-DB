@@ -95,11 +95,13 @@ router.get("/:par3?/:par4?", async (req, res) => {
         const moviesFromDB = await movieList.find({ _id: req.params.par4 });
 
         try {
-          res.send(moviesFromDB);
+          res.send({statys:200,data:moviesFromDB});
         } catch (error) {
-          res.status(500).send(error);
+          res.status(500).send({status:500,message:error});
         }
       }
+    } else{
+      res.status(404).send({status:404,message:`${par3}is not a directory`})
     }
   }
 });
@@ -167,7 +169,6 @@ router.put("/:par3?", async (req, res) => {
     var year = req.query.year;
     var rating = req.query.rating;
     const filter = { _id: par3 };
-
     var update = {};
 
     theTitle !== undefined ? (update.title = theTitle) : update;
@@ -178,13 +179,15 @@ router.put("/:par3?", async (req, res) => {
     rating !== undefined && rating !== NaN && rating >= 0 && rating <= 10
       ? (update.rating = parseFloat(rating))
       : update;
+    console.log(update)
     try{await movieList.countDocuments(filter); // 0
 
     let movie = await movieList.findOneAndUpdate(filter, update, {
       new: true,
-      upsert: true, // Make this update into an upsert
     });
-    res.send({status:200 ,data:movie});}catch(err){
+    
+    movie!==null?res.send({status:200 ,data:movie}):res.send(`No movie with ID: ${par3} `);
+  }catch(err){
       res.status(500).send(err)
     }
   
