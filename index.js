@@ -1,9 +1,12 @@
 const express = require("express");
 const app = express();
 const movieRouter = require('./routes/movies')
+const userRouter=require('./routes/user')
 const port = 9797;
-
-
+const auth = require("./middleware/auth");
+require("dotenv").config();
+require("./config/database").connect();
+app.use(express.json());
 app.get("/", (req, res) => {
   res.send("ok");
 });
@@ -36,7 +39,11 @@ app.get("/search", (req, res) => {
   }
 });
 app.use('/movies',movieRouter)
+app.use('/user',userRouter)
 
+app.get("/welcome", auth, (req, res) => {
+  res.status(200).send("Welcome 🙌 ");
+});
 app.listen(port, () => {
   console.log(`listening at http://localhost:${port}`);
 });

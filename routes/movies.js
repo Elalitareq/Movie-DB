@@ -1,25 +1,11 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const user = "user";
-const password = "mogopass";
-const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
-var movieList = require("./../models/movieList");
+var movieList = require("../models/movieList.js");
+const auth = require("./../middleware/auth")
 const movieRouter = express.Router();
 movieRouter.use((_req, _res, next) => {
-  console.log("Using Route");
+  console.log("Using movieRoute");
   next();
 });
-try {
-  mongoose.connect(
-    url,
-    { useNewUrlParser: true, useUnifiedTopology: true },
-    async () => {
-      console.log("Connected to MongoDB ");
-    }
-  );
-} catch (error) {
-  console.log(error.message);
-}
 movieRouter.get("/:par3?/:par4?", async (req, res) => {
   let par3 = req.params.par3;
   let par4 = req.params.par4;
@@ -81,7 +67,7 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
           const movieFromDB = await movieList.find({ _id: req.params.par4 });
           res.send({ statys: 200, message: `ID:${par4}`, data: movieFromDB });
         } else {
-          res.send({ statys: 200, message: `ID:${par4} does not exist` });
+          res.send({ statys: 404, message: `ID:${par4} does not exist` });
         }
       });
     } catch (error) {
@@ -114,39 +100,22 @@ movieRouter.post("/", async (req, res) => {
     res.status(403).send({ status: 403, error: true, message: error.message });
   }
 });
-movieRouter.delete("/:par3?", async (req, res) => {
-  let par3 = req.params.par3;
-  if (par3 === undefined || par3 == "" || par3 < 0) {
-    res.status(404).send({
-      status: 404,
-      error: true,
-      message: `the movie ${par3} does not exist`,
-    });
-  } else {
-    try {
-      movieList.countDocuments({ _id: par3 }, async (err, count) => {
-        if (count > 0) {
-          movieList.deleteOne({ _id: par3 }).then(() => {
-            console.log("Data deleted");
-          });
-          res.send({ status: 200, message: `movie with ID:${par3} deleted` });
-        } else {
-          res.status(404).send({
-            statys: 404,
-            error: true,
-            message: `ID:${par3} not found`,
-          });
-        }
+movieRouter.delete("/:id", auth,async (req, res) => {
+  let id = req.params.id;
+  movieList.findByIdAndDelete(id, (error, data) => {
+    if (data !== null) {
+      if (error) res.send({status:500,error:true,message:error.message});
+      else res.send({ status: 200,message:`movie with ID:${id} deleted `, data: data });
+    } else {
+      res.status(404).send({
+        status: 404,
+        error: true,
+        message: `the movie ${id} does not exist`,
       });
-    } catch (error) {
-      res
-        .status(500)
-        .send({ status: 500, error: true, message: error.message });
     }
-  }
+  });
 });
-
-movieRouter.put("/:par3?", async (req, res) => {
+movieRouter.put("/:par3?",auth, async (req, res) => {
   let par3 = req.params.par3;
   if (isNaN(par3)) {
     res.status(404).send({
@@ -179,13 +148,11 @@ movieRouter.put("/:par3?", async (req, res) => {
 
       movie !== null
         ? res.send({ status: 200, data: movie })
-        : res
-            .status(404)
-            .send({
-              status: 404,
-              error: true,
-              message: `ID:${par3} not found `,
-            });
+        : res.status(404).send({
+            status: 404,
+            error: true,
+            message: `ID:${par3} not found `,
+          });
     } catch (err) {
       res.status(500).send(err);
     }
