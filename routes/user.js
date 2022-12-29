@@ -136,7 +136,7 @@ userRouter.patch("/update", async (req, res) => {
     res.status(500).send({status:500,error:true,message:err.message});
   }
 });
-userRouter.get("/", async (req, res) => {
+userRouter.get("/", async (_req, res) => {
   try {
     const users = await User.find();
     res.status(200).send({status:200,users:users});
@@ -147,4 +147,4 @@ userRouter.get("/", async (req, res) => {
 //i didnt add authentication for the user creation and delete so that you can add your own user and test the project
 //and yeah i searched how to add user authentication to express js project and copied the creating and loging in functions
 //but i edited them to work with my project and also i added the delete update and get routes 
-//also i create the auth middleware on my own
+//also i created the auth middleware on my own
