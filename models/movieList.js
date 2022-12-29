@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
-const user = "user";
-const password = "mogopass";
-const url = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/movies_db?retryWrites=true&w=majority`;
+require("dotenv").config();
+
+const user = process.env.user;
+const password = process.env.password;
+const db=process.env.db
+const URI = `mongodb+srv://${user}:${password}@moviescluster.jng0psx.mongodb.net/${db}?retryWrites=true&w=majority`;
+
 const autoIncrement = require("mongoose-ai");
 mongoose.set("strictQuery", false);
-var connection = mongoose.createConnection(url);
+var connection = mongoose.createConnection(URI);
 autoIncrement.initialize(connection);
 var movieSchema = mongoose.Schema(
   {

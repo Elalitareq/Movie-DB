@@ -66,7 +66,7 @@ movieRouter.get("/:par3?/:par4?", async (req, res) => {
   }
 });
 
-movieRouter.post("/", async (req, res) => {
+movieRouter.post("/", auth,async (req, res) => {
   try {
     const { title, year, rating } = req.query;
     const newMovie = { title, year, rating };
@@ -78,24 +78,24 @@ movieRouter.post("/", async (req, res) => {
   }
 });
 
-movieRouter.delete("/:id", async (req, res) => {
+movieRouter.delete("/:id", auth, async (req, res) => {
   try {
     let id = req.params.id;
     const data = await movieList.findByIdAndDelete(id);
-    if (data) {
-      res.send({ status: 200, message: `movie with ID:${id} deleted, data ` });
-    } else {
-      res.status(404).send({
+    if (!data) {
+      return res.status(404).send({
         status: 404,
         error: true,
         message: `the movie ${id} does not exist`,
       });
     }
+    res.send({ status: 200, message: `movie with ID:${id} deleted`, data });
   } catch (error) {
-    res.send({ status: 500, error: true, message: error.message });
+    res.status(500).send({ status: 500, error: true, message: error.message });
   }
 });
-movieRouter.put("/:par3?", async (req, res) => {
+
+movieRouter.patch("/:par3?",auth, async (req, res) => {
   let par3 = req.params.par3;
   if (isNaN(par3)) {
     return res.status(400).send({

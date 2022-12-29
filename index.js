@@ -1,49 +1,37 @@
 const express = require("express");
 const app = express();
-const movieRouter = require('./routes/movies')
-const userRouter=require('./routes/user')
+const movieRouter = require("./routes/movies");
+const userRouter = require("./routes/user");
 const port = 9797;
 const auth = require("./middleware/auth");
 require("dotenv").config();
 require("./config/database").connect();
+
 app.use(express.json());
-app.get("/", (req, res) => {
-  res.send("ok");
-});
-app.get("/test", (req, res) => {
-  const response = {
-    status: 200,
-    message: "ok",
-  };
-  res.send(response);
-});
-app.get("/time", (req, res) => {
+
+app.get("/", (_req, res) => res.send("ok"));
+app.get("/test", (_req, res) => res.send({ status: 200, message: "ok" }));
+app.get("/time", (_req, res) => {
   let date = new Date();
   let time = `${date.getHours()}:${date.getMinutes()}}`;
-  let response = { status: 200, message: time };
-  res.send(response);
+  res.send({ status: 200, message: time });
 });
 app.get("/hello/:par2?", (req, res) => {
   let par2 = req.params.par2;
-  par2 == undefined
-    ? res.send({ status: 200, message: "hello" })
-    : res.send({ status: 200, message: `hello, ${par2}` });
+  res.send({ status: 200, message: par2 ? `hello, ${par2}` : "hello" });
 });
 app.get("/search", (req, res) => {
-  if (req.query.s == "" || req.query.s == undefined) {
-    let search = { status: 500, message: `You have to provide a search` };
-    res.status(500).send(search);
+  if (req.query.s) {
+    res.send({ status: 200, message: `OK`, data: req.query.s });
   } else {
-    let search = { status: 200, message: `OK`, data: req.query.s };
-    res.send(search);
+    res
+      .status(500)
+      .send({ status: 500, message: `You have to provide a search` });
   }
 });
-app.use('/movies',movieRouter)
-app.use('/user',userRouter)
 
-app.get("/welcome", auth, (req, res) => {
-  res.status(200).send("Welcome 🙌 ");
-});
-app.listen(port, () => {
-  console.log(`listening at http://localhost:${port}`);
-});
+app.use("/movies", movieRouter);
+app.use("/user", userRouter);
+
+app.get("/welcome", auth, (_req, res) => res.status(200).send("Welcome 🙌 "));
+app.listen(port, () => console.log(`listening at http://localhost:${port}`));
