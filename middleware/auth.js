@@ -4,7 +4,7 @@ const config = process.env;
 
 const verifyToken = (req, res, next) => {
   const token =
-    req.body.token || req.query.token || req.headers["x-access-token"];
+    req.body.token || req.query.token || req.headers["access-token"];
 
   if (!token) {
     return res.status(403).send("A token is required for authentication");
@@ -17,5 +17,5 @@ const verifyToken = (req, res, next) => {
   }
   return next();
 };
-
+//in the varify token u can use the query to pass ur tokken or use the body to pass it or use the headers access-token to pass it
 module.exports = verifyToken;
