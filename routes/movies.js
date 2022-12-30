@@ -95,7 +95,7 @@ movieRouter.delete("/:id", auth, async (req, res) => {
   }
 });
 
-movieRouter.patch("/:par3?", async (req, res) => {
+movieRouter.patch("/:par3?",auth, async (req, res) => {
   const { par3 } = req.params;
   if (isNaN(par3)) return res.status(400).send({ status: 400, error: true, message: `please select a valid ID number` });
 
