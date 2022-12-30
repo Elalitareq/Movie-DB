@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const movieRouter = require("./routes/movies");
 const userRouter = require("./routes/user");
-const port = 9797;
+const port = 3000;
 const auth = require("./middleware/auth");
 require("dotenv").config();
 require("./config/database").connect();

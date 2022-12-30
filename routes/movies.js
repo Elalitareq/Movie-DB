@@ -72,7 +72,7 @@ movieRouter.post("/", auth,async (req, res) => {
     const newMovie = { title, year, rating };
     const movie = new movieList(newMovie);
     const addedMovie = await movie.save();
-    res.send({ status: 200, message: "movie added", data: { addedMovie } });
+    res.send({ status: 201, message: "movie added", data: { addedMovie } });
   } catch (error) {
     res.status(403).send({ status: 403, error: true, message: error.message });
   }
@@ -95,7 +95,7 @@ movieRouter.delete("/:id", auth, async (req, res) => {
   }
 });
 
-movieRouter.patch("/:par3?", auth, async (req, res) => {
+movieRouter.patch("/:par3?", async (req, res) => {
   const { par3 } = req.params;
   if (isNaN(par3)) return res.status(400).send({ status: 400, error: true, message: `please select a valid ID number` });
 
@@ -105,12 +105,12 @@ movieRouter.patch("/:par3?", auth, async (req, res) => {
 
   if (title) update.title = title;
   if (year && year.toString().length === 4 && !isNaN(year)) update.year = parseInt(year);
-  if (rating && !isNaN(rating) && rating >= 0 && rating <= 10) update.rating = parseFloat(rating);
-
+  if (rating && !isNaN(rating) && rating >= 0 && rating <= 10) update.rating = parseFloat(rating)
+  else if(rating<0||rating>10){return res.status(400).send(`${rating} is not an accepted rating`)}
   try {
     const movie = await movieList.findOneAndUpdate(filter, update, { new: true });
     if (!movie) return res.status(404).send({ status: 404, error: true, message: `ID:${par3} not found` });
-    res.send({ status: 200, data: movie });
+    else return res.send({ status: 200, data: movie });
   } catch (err) {
     res.status(500).send(err.message);
   }
