@@ -3,6 +3,7 @@ const userRouter = express.Router();
 const User = require("./../models/user.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
 require("dotenv").config();
 userRouter.use((_req, _res, next) => {
   console.log("Using userRoute");
@@ -45,9 +46,12 @@ userRouter.post("/create", async (req, res) => {
       );
       // save user token
       user.token = token;
-
+      res.cookie("access-token", token, {
+        maxAge: 2 * 60 * 60 * 1000,
+        httpOnly: true,
+      });
       // return new user
-      res.status(201).json(user);
+      res.status(201).send("User created Successfully");
     }
   } catch (err) {
     console.log(err);
@@ -79,7 +83,12 @@ userRouter.post("/login", async (req, res) => {
       // save user token
       user.token = token;
 
-      // user
+      res.cookie("access-token", token, {
+        maxAge: 2 * 60 * 60 * 1000,
+        httpOnly: true,
+      });
+
+      // Send the user object as a response
       res.status(200).json(user);
     } else {
       res.status(400).send("Invalid Credentials");
@@ -88,6 +97,7 @@ userRouter.post("/login", async (req, res) => {
     console.log(err);
   }
 });
+
 module.exports = userRouter;
 //delete
 userRouter.delete("/delete", async (req, res) => {

@@ -4,6 +4,9 @@ const movieRouter = require("./routes/movies");
 const userRouter = require("./routes/user");
 const port = 3000;
 const auth = require("./middleware/auth");
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
 require("dotenv").config();
 require("./config/database").connect();
 
