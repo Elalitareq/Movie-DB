@@ -89,7 +89,7 @@ userRouter.post("/login", async (req, res) => {
       });
 
       // Send the user object as a response
-      res.status(200).json(user);
+      res.status(200).json("logged in successfully");
     } else {
       res.status(400).send("Invalid Credentials");
     }
@@ -156,5 +156,6 @@ userRouter.get("/", async (_req, res) => {
 });
 //i didnt add authentication for the user creation and delete so that you can add your own user and test the project
 //and yeah i searched how to add user authentication to express js project and copied the creating and loging in functions
+// here is the link i copied from https://www.freecodecamp.org/news/how-to-authenticate-users-and-implement-cors-in-nodejs-applications/
 //but i edited them to work with my project and also i added the delete update and get routes 
 //also i created the auth middleware on my own
