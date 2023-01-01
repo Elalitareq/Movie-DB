@@ -122,11 +122,12 @@ userRouter.delete("/delete", async (req, res) => {
 userRouter.patch("/update", async (req, res) => {
   try {
     const { email } = req.body;
-    let password=req.body.password
-    encryptedPassword = await bcrypt.hash(password, 10);
+      const updates = req.body;
+      let password=req.body.password
+      if (password){    encryptedPassword = await bcrypt.hash(password, 10);
 
-    const updates = req.body;
-    updates.password=encryptedPassword
+      updates.password=encryptedPassword}
+
     const allowedUpdates = ["first_name", "last_name", "email", "password"];
     const isValidUpdate = Object.keys(updates).every((update) =>
       allowedUpdates.includes(update)
